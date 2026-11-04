@@ -126,6 +126,8 @@ npm pack --dry-run   # 安装时会收到哪些文件
 
 无需 `npm install`。细节见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
+版本变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+
 ## License
 
 [MIT](LICENSE)

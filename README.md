@@ -171,6 +171,8 @@ npm pack --dry-run   # exactly which files an install receives
 
 No `npm install` needed. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+Release history lives in [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
 [MIT](LICENSE)

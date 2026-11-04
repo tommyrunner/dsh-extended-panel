@@ -42,7 +42,8 @@
     "locale/*.json",
     "icon.svg",
     "promo/*.png",
-    "CONTRIBUTING.md"
+    "CONTRIBUTING.md",
+    "CHANGELOG.md"
   ],
   "dsh": {
     "bundle": {

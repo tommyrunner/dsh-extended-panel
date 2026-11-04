@@ -57,6 +57,7 @@ const requiredFiles = [
   'README.md',
   'README.zh.md',
   'LICENSE',
+  'CHANGELOG.md',
   'promo/home.png',
 ];
 step('every shipped file exists', () => requiredFiles.every((file) => existsSync(join(root, file))));
