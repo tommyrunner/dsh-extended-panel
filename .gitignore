@@ -4,3 +4,6 @@ node_modules/
 .dsh/
 dist/
 *.log
+
+# Personal agent memory maintained by the mycode-memory skill
+AGENTS.md

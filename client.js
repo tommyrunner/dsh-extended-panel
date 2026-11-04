@@ -250,7 +250,11 @@ window.__ModuleLoader__.load({
       fontSize: 12.5,
     });
     const fieldLabel = { display: 'grid', gap: 5, fontSize: 12, color: TOKEN.labelSecondary };
+    /** Compact control used inside the skill-parameter rows. */
+    const paramControlStyle = Object.assign({}, inputStyle, { height: 32, fontSize: 12, fontFamily: mono });
     const hint = { margin: 0, fontSize: 12, lineHeight: '18px', color: TOKEN.labelTertiary };
+    /** Secondary line used for metadata under a control. */
+    const tinyHint = Object.assign({}, hint, { fontSize: 11 });
     const cardStyle = {
       display: 'flex',
       flexDirection: 'column',
@@ -898,7 +902,7 @@ window.__ModuleLoader__.load({
               h('code', { style: { fontSize: 11.5, color: TOKEN.labelTertiary, fontFamily: mono } }, current === 'true' ? 'true' : 'false'));
           } else if (row.type === 'select' && choices.length > 0) {
             control = h('select', {
-              style: Object.assign({}, inputStyle, { height: 32, fontSize: 12, fontFamily: mono, appearance: 'auto' }),
+              style: Object.assign({}, paramControlStyle, { appearance: 'auto' }),
               value: current,
               onChange: (event) => edit(key, event.target.value),
             }, choices.map((choice) => h('option', { key: choice, value: choice }, choice === '' ? t('paramEmpty') : choice)));
@@ -907,7 +911,7 @@ window.__ModuleLoader__.load({
               type: 'text',
               value: current,
               onChange: (event) => edit(key, event.target.value),
-              style: Object.assign({}, inputStyle, { height: 32, fontSize: 12, fontFamily: mono }),
+              style: paramControlStyle,
               spellCheck: false,
             });
           }
@@ -932,7 +936,7 @@ window.__ModuleLoader__.load({
             h('p', { style: hint }, t('paramsHint'))),
           h('div', { style: { display: 'grid', gap: 8 } }, paramRows),
           h('div', { style: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' } },
-            h('span', { style: Object.assign({}, hint, { fontSize: 11 }) }, t('paramsFile')),
+            h('span', { style: tinyHint }, t('paramsFile')),
             h('code', { style: { fontFamily: mono, fontSize: 11, color: TOKEN.labelSecondary, wordBreak: 'break-all' } }, requestedFile())),
           h('div', { style: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' } },
             h('button', Object.assign({
@@ -950,7 +954,7 @@ window.__ModuleLoader__.load({
               onClick: () => { setNotice(''); void load(); },
             }, hoverable('secondary')), t('refresh')),
             notice ? h('span', { style: Object.assign({}, hint, { color: notice === t('paramsStaged') ? TOKEN.warn : TOKEN.labelTertiary }) }, notice) : null),
-          h('p', { style: Object.assign({}, hint, { fontSize: 11 }) }, t('paramsSecretNote')));
+          h('p', { style: tinyHint }, t('paramsSecretNote')));
       } else if (paramsState.status === 'error') {
         // A genuine read failure is still worth a single line; a missing block is not.
         paramCard = h('section', { style: cardStyle },
@@ -1168,10 +1172,7 @@ window.__ModuleLoader__.load({
         },
       }, label);
 
-      const field = (label, control, hintText) => h('label', { style: fieldLabel },
-        h('span', null, label),
-        control,
-        hintText ? h('span', { style: hint }, hintText) : null);
+      const field = (label, control, hintText) => h(Field, { label: label, hint: hintText }, control);
 
       const submit = async () => {
         const name = draft.serverName.trim();
@@ -1254,7 +1255,7 @@ window.__ModuleLoader__.load({
             }), t('nameHint')),
             body),
           error ? h('p', { style: Object.assign({}, hint, { color: TOKEN.error }) }, error) : null,
-          h('p', { style: Object.assign({}, hint, { fontSize: 11 }) }, mode === 'stdio' ? t('tipsLocal') : t('tipsOnline')),
+          h('p', { style: tinyHint }, mode === 'stdio' ? t('tipsLocal') : t('tipsOnline')),
           h('div', { style: { display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 2 } },
             h('button', Object.assign({ type: 'button', style: buttonStyle('secondary'), onClick: props.onCancel }, hoverable('secondary')), t('cancel')),
             h('button', Object.assign({ type: 'button', style: buttonStyle('primary'), disabled: busy, onClick: submit }, busy ? {} : hoverable('primary')), busy ? t('saving') : t('add')))));

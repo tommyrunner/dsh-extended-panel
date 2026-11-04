@@ -144,8 +144,7 @@ export const Config = z && Connection
  * @returns {Record<string, Record<string, string>>} File path → parameter values.
  */
 function skillParamsOf(config) {
-  const field = config?.skillParams;
-  const value = field !== null && typeof field === 'object' && typeof field.get === 'function' ? field.get() : field;
+  const value = unwrap(config?.skillParams);
   return value !== null && typeof value === 'object' && !Array.isArray(value) ? value : {};
 }
 
@@ -316,13 +315,21 @@ function mcpConfig(connection) {
 }
 
 /**
+ * Unwrap a volatile config field into its current plain value.
+ * @param {unknown} field - The resolved field, possibly a volatile reference.
+ * @returns {unknown} The plain value.
+ */
+function unwrap(field) {
+  return field !== null && typeof field === 'object' && typeof field.get === 'function' ? field.get() : field;
+}
+
+/**
  * Read the servers out of the resolved config, unwrapping the volatile ref.
  * @param {object|undefined} config - The resolved plugin config.
  * @returns {object[]} The configured connections.
  */
 function serversOf(config) {
-  const field = config?.servers;
-  const value = field !== null && typeof field === 'object' && typeof field.get === 'function' ? field.get() : field;
+  const value = unwrap(config?.servers);
   return Array.isArray(value) ? value : [];
 }
 
