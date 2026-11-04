@@ -46,11 +46,8 @@ window.__ModuleLoader__.load({
       expandAll: 'Expand all',
       showAll: 'Show all',
       collapseAll: 'Collapse all',
-      showingFirst: 'Showing the first',
       paramsTitle: 'Parameters',
       paramsHint: 'Values written into this skill\'s agents/openai.yaml in place. Only this copy is edited; other copies of the skill need a manual sync.',
-      paramsNone: 'This skill declares no params.',
-      paramsLoading: 'Reading agents/openai.yaml…',
       paramsReadError: 'Could not read agents/openai.yaml: ',
       paramsSave: 'Save parameters',
       paramsSaved: 'Saved and verified in the file.',
@@ -59,6 +56,7 @@ window.__ModuleLoader__.load({
       paramsSaveFailed: 'The deployment did not accept these values.',
       paramsFile: 'File',
       paramsSecretNote: 'Values are stored as plain text in the skill file and in this profile\'s settings patch.',
+      paramEmpty: '(empty)',
       back: 'Back',
       skillsHint: 'Skills the current session can load with /name, from its agent catalog.',
       skillsEmpty: 'No skill is visible to this session. Open a conversation, then refresh.',
@@ -69,14 +67,11 @@ window.__ModuleLoader__.load({
       groupOther: 'Other',
       groupServers: 'Servers',
       userOnly: 'user only',
-      openHint: 'Open its file',
       copied: 'Copied',
       copyPath: 'Copy path',
       skillInvoke: 'Invoke it from a conversation by typing ',
       whenToUse: 'Use when',
       location: 'Location',
-      session: 'Session',
-      noSession: 'No conversation open',
       mcpEmpty: 'No MCP connection yet. Add one to mount a server.',
       addConnection: 'Add connection',
       addSubtitle: 'Connect one MCP server: run a local command, or point at an online endpoint.',
@@ -107,17 +102,10 @@ window.__ModuleLoader__.load({
       url: 'Endpoint URL',
       headers: 'Headers (KEY=VALUE, one per line)',
       mount: 'Mount',
-      statusConnected: 'connected',
-      statusFailed: 'failed',
-      statusPending: 'starting',
-      statusNotMounted: 'not mounted',
       invalid: 'Each connection needs a unique name, plus a command or an endpoint URL.',
       toolNameHint: 'Tools appear as',
       pluginsHint: 'Plugins loaded by this Harness profile, read from the loader inventory.',
       pluginsEmpty: 'No plugin matches this search.',
-      entryId: 'Entry',
-      module: 'Module',
-      phase: 'State',
       phaseActive: 'active',
       phaseFailed: 'failed',
       phaseIdle: 'idle',
@@ -139,11 +127,8 @@ window.__ModuleLoader__.load({
       expandAll: '全部展开',
       showAll: '显示全部',
       collapseAll: '全部折叠',
-      showingFirst: '仅显示前',
       paramsTitle: '参数',
       paramsHint: '这些值会就地写回该技能的 agents/openai.yaml。只改这一份，其它副本（如 ~/.codex/skills）需手动同步。',
-      paramsNone: '该技能没有声明 params。',
-      paramsLoading: '正在读取 agents/openai.yaml…',
       paramsReadError: '读取 agents/openai.yaml 失败：',
       paramsSave: '保存参数',
       paramsSaved: '已保存，并已在文件中确认。',
@@ -163,14 +148,11 @@ window.__ModuleLoader__.load({
       groupOther: '其他',
       groupServers: '服务器',
       userOnly: '仅用户可调用',
-      openHint: '打开所在文件',
       copied: '已复制',
       copyPath: '复制路径',
       skillInvoke: '在对话里输入该名称即可调用：',
       whenToUse: '适用场景',
       location: '位置',
-      session: '会话',
-      noSession: '没有打开的对话',
       mcpEmpty: '还没有 MCP 连接。添加一条即可挂载服务器。',
       addConnection: '添加连接',
       addSubtitle: '接入一个 MCP 服务器：运行本地命令，或连接线上地址。',
@@ -201,17 +183,10 @@ window.__ModuleLoader__.load({
       url: '端点地址',
       headers: '请求头（KEY=VALUE，每行一个）',
       mount: '挂载',
-      statusConnected: '已连接',
-      statusFailed: '失败',
-      statusPending: '启动中',
-      statusNotMounted: '未挂载',
       invalid: '每条连接都需要唯一名称，以及启动命令或端点地址。',
       toolNameHint: '工具名形如',
       pluginsHint: '当前 Harness profile 已加载的插件，读自 Loader 清单（只读）。',
       pluginsEmpty: '没有匹配的插件。',
-      entryId: '条目',
-      module: '模块',
-      phase: '状态',
       phaseActive: '运行中',
       phaseFailed: '失败',
       phaseIdle: '空闲',
@@ -222,23 +197,19 @@ window.__ModuleLoader__.load({
       labelPrimary: 'var(--dsw-alias-label-primary, currentColor)',
       labelSecondary: 'var(--dsw-alias-label-secondary, currentColor)',
       labelTertiary: 'var(--dsw-alias-label-tertiary, currentColor)',
-      labelCaption: 'var(--dsw-alias-label-caption, currentColor)',
       onPrimary: 'var(--dsw-alias-label-primary-foreground, #fff)',
       border: 'var(--dsw-alias-border-l3, rgba(127,127,127,.35))',
-      borderStrong: 'var(--dsw-alias-border-l4, rgba(127,127,127,.5))',
       cardFill: 'var(--dsw-alias-settings-card-fill, transparent)',
       cardStroke: 'var(--dsw-alias-settings-card-stroke, rgba(127,127,127,.3))',
       bgLayer3: 'var(--dsw-alias-bg-layer-3, rgba(127,127,127,.14))',
       moduleBg: 'var(--dsw-alias-bg-module-platform, rgba(127,127,127,.06))',
       hoverSolid: 'var(--dsw-alias-interactive-bg-hover-solid, rgba(127,127,127,.12))',
       hoverDanger: 'var(--dsw-alias-interactive-bg-hover-danger, rgba(214,69,69,.1))',
-      hover: 'var(--dsw-alias-interactive-bg-hover, rgba(127,127,127,.12))',
       error: 'var(--dsw-alias-state-error-primary, #d64545)',
       success: 'var(--dsw-alias-state-success-primary, #2f9e63)',
       warn: 'var(--dsw-alias-state-warn-primary, #c98a1a)',
       buttonFill: 'var(--dsw-alias-button-primary-fill, #4b8bf5)',
       buttonHover: 'var(--dsw-alias-button-primary-hover, #3f7be0)',
-      focusRing: 'var(--dsw-focus-ring-color, rgba(75,139,245,.5))',
       radiusXs: 'var(--dsw-radius-xs, 4px)',
       radiusSm: 'var(--dsw-radius-sm, 6px)',
       radiusMd: 'var(--dsw-radius-md, 8px)',
@@ -319,7 +290,6 @@ window.__ModuleLoader__.load({
       fontWeight: 600,
       lineHeight: 1,
     };
-    const listHead = { display: 'flex', alignItems: 'baseline', gap: 8, margin: '18px 0 0' };
     const listHeadTitle = { margin: 0, color: TOKEN.labelPrimary, fontSize: 14, fontWeight: 500, lineHeight: '22px' };
     const listHeadCount = { color: TOKEN.labelSecondary, fontSize: 12, lineHeight: '18px' };
     const detailTitle = { margin: 0, color: TOKEN.labelPrimary, fontSize: 18, fontWeight: 600, lineHeight: '26px' };
@@ -657,7 +627,7 @@ window.__ModuleLoader__.load({
         style: {
           border: '.5px solid ' + TOKEN.border,
           borderRadius: TOKEN.radiusXs,
-          color: props.tone === 'error' ? TOKEN.error : TOKEN.labelSecondary,
+          color: TOKEN.labelSecondary,
           flex: 'none',
           padding: '1px 6px',
           fontSize: 11,
@@ -857,12 +827,7 @@ window.__ModuleLoader__.load({
         (rows || []).forEach((row) => { next[row.key] = row.value; });
         setParams(rows);
         setValues(next);
-        setParamsState({
-          status: rows === null ? 'none' : 'ok',
-          file: result.file || interfaceFile,
-          error: '',
-          readLines: String(result.text || '').split(/\r?\n/).length,
-        });
+        setParamsState({ status: rows === null ? 'none' : 'ok', file: result.file || interfaceFile, error: '' });
       };
 
       React.useEffect(() => { void load(); }, [skill.path]);
@@ -1676,12 +1641,6 @@ window.__ModuleLoader__.load({
         }
       }
 
-      function selectSession(id) {
-        if (id === state.sessionId) return;
-        state.sessionId = id;
-        void loadSkills();
-      }
-
       function refresh() {
         if (state.sessionId === undefined) state.sessionId = defaultSessionId();
         void loadSkills();
@@ -1808,18 +1767,11 @@ window.__ModuleLoader__.load({
         store: store,
         save: save,
         refresh: refresh,
-        selectSession: selectSession,
         readSkillInterface: readSkillInterface,
         saveSkillParams: saveSkillParams,
       }))), 'dsh-extended-panel: settings section');
     }
 
-    const exported = { inject: inject, apply: apply };
-    // Headless smoke tests render the detail views directly; the flag keeps this
-    // surface out of the shipped page.
-    if (typeof window !== 'undefined' && window.__DSH_INVENTORY_TEST__ === true) {
-      exported.test = { Panel: Panel, SkillDetail: SkillDetail, McpDetail: McpDetail, groupOf: groupOf, draftOf: draftOf, serverOf: serverOf, parseParamsBlock: parseParamsBlock };
-    }
-    return exported;
+    return { inject: inject, apply: apply };
   },
 });

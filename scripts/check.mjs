@@ -98,6 +98,30 @@ for (const locale of ['en', 'zh']) {
   });
 }
 
+// ── dictionaries ──────────────────────────────────────────────────────────────
+const clientSource = readFileSync(join(root, 'client.js'), 'utf8');
+const dictionary = (name) => {
+  const block = new RegExp(`const ${name} = \\{([\\s\\S]*?)\\n    \\};`).exec(clientSource);
+  if (block === null) throw new Error(`no ${name} dictionary`);
+  return [...block[1].matchAll(/^ {6}([A-Za-z][\w]*):/gm)].map((match) => match[1]);
+};
+
+step('both dictionaries carry the same keys', () => {
+  const en = dictionary('en').sort().join(',');
+  const zh = dictionary('zh').sort().join(',');
+  return en.length > 0 && en === zh;
+});
+
+step('every dictionary key is used by the page', () => {
+  // `groupProject` / `phaseActive` style keys are built from a prefix at render
+  // time, so their family prefix counts as a use.
+  return dictionary('en').every((key) => {
+    if (clientSource.includes(`t('${key}')`)) return true;
+    const family = /^(group|phase)/.exec(key);
+    return family !== null && clientSource.includes(`t('${family[1]}'`);
+  });
+});
+
 // ── browser module shape ──────────────────────────────────────────────────────
 let registered;
 globalThis.window = {
