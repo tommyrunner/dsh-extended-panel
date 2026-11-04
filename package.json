@@ -1,0 +1,62 @@
+{
+  "name": "dsh-extended-panel",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "DeepSeek Harness settings section for skills, MCP connections, and loaded plugins: browse the session skill catalog, edit skill-interface parameters, and mount MCP servers live.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tommyrunner/dsh-extended-panel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tommyrunner/dsh-extended-panel/issues"
+  },
+  "homepage": "https://github.com/tommyrunner/dsh-extended-panel#readme",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "dsh-bundle",
+    "skills",
+    "mcp",
+    "model-context-protocol"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "pack:local": "npm pack"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "promo/*.png",
+    "CONTRIBUTING.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-plugin-manager",
+        "@deepseek-ai/dsh-api-remotes"
+      ]
+    }
+  }
+}

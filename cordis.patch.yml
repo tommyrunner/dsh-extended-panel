@@ -1,0 +1,8 @@
+# Bundle patch: inserts the panel's host row. MCP connections are not rows here;
+# the host half creates one live `@deepseek-ai/dsh-mcp-client` entry per configured
+# server, so adding or removing a server in the UI takes effect without a restart.
+- insert:
+    - id: dsh-extended-panel
+      name: 'dsh-extended-panel'
+      config:
+        servers: []
