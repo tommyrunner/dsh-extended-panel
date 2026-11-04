@@ -74,6 +74,125 @@ params:
 
 加新**字段**（如 `placeholder`、`description`、`group`）甚至不用改代码：解析会忽略它，写回不会碰它；之后想用，再在渲染处读出来即可。
 
+## 技能参数：让 skill 严格遵循
+
+面板只负责**存值**；运行时是否真的按这些值执行，取决于 **skill 自己的 `SKILL.md` 有没有约束 agent**。
+只声明 `params` 而不写执行规则，模型会把参数当成"建议"：值不符合预期时反问用户要不要改、给"推荐值"、或者干脆用环境变量覆盖。
+
+把下面这段放进 `SKILL.md`（按你的技能改写动作名即可）：
+
+````markdown
+## 参数（必须严格遵循）
+
+执行任何动作前，先读取本技能目录下的 `agents/openai.yaml`，取其中的 `params`。
+
+- `params.<KEY>.value` 是**唯一有效值**：不要用硬编码、环境变量、`~/.dsh/.credentials.yaml` 或历史对话里的旧值覆盖它。
+- 参数存在就直接用，**不要询问用户是否使用、是否修改**，也不要"推荐"改成别的值；用户改参数只通过「设置 → 扩展坞」。
+- `type: select` 时，`value` 必须是 `select` 列表中的一项；不在列表里视为配置错误。
+- `type: boolean` 时按布尔处理（`true` / `false`），不要当成字符串。
+- 缺少某个 key、或 `value` 为空时：**停止**并提示用户到「设置 → 扩展坞」填写该参数；不要猜测，也不要给候选让用户选。
+- 不要修改 `agents/openai.yaml`；该文件由面板写入。
+- 在第一条进度里说明本次使用的参数（例如 `is_tinypng=false`、`mode=dark`），但不要回显 token 全文。
+````
+
+### 示例：三种参数 + 对应的 SKILL.md 约束
+
+`agents/openai.yaml`：
+
+```yaml
+params:
+  XIYA_API_TOKEN:
+    value: 'eyJ…'
+    type: input
+  is_tinypng:
+    value: false
+    type: boolean
+  mode:
+    value: dark
+    type: select
+    select: ['light', 'dark']
+```
+
+`SKILL.md` 里对应的执行规则：
+
+```markdown
+## 参数
+
+先读 `agents/openai.yaml` 的 `params`，以下行为由参数决定，不得自行更改：
+
+- 上传资源前，若 `params.is_tinypng.value` 为 `true`，先压缩再上传；为 `false` 则直接上传原文件。**不要询问用户**要不要压缩。
+- 界面主题取 `params.mode.value`（`light` / `dark`），不要猜测，也不要沿用上一次的值。
+- 鉴权只使用 `params.XIYA_API_TOKEN.value`；缺失时停止并提示用户在「设置 → 扩展坞」填写。
+```
+
+### 读取示例（Python，仅标准库，兼容两种写法）
+
+```python
+import pathlib
+import re
+
+
+def read_params(skill_dir):
+    """读 agents/openai.yaml 的 params；扁平标量按 input 处理。"""
+    text = (pathlib.Path(skill_dir) / 'agents' / 'openai.yaml').read_text(encoding='utf-8')
+    lines = text.splitlines()
+    start = next((i for i, line in enumerate(lines) if re.match(r'^params:\s*$', line)), None)
+    if start is None:
+        return {}
+    params, i = {}, start + 1
+    while i < len(lines):
+        line = lines[i]
+        if line.strip() == '':
+            i += 1
+            continue
+        if not line.startswith((' ', '\t')):
+            break
+        match = re.match(r'^\s+([A-Za-z0-9_]+):\s*(.*)$', line)
+        if not match:
+            i += 1
+            continue
+        key, rest = match.group(1), match.group(2).strip()
+        if rest and not rest.startswith('#'):
+            params[key] = {'value': rest.strip('\'"'), 'type': 'input'}
+            i += 1
+            continue
+        entry = {'value': '', 'type': 'input'}
+        i += 1
+        while i < len(lines) and (lines[i].strip() == '' or lines[i].startswith((' ', '\t'))):
+            field = re.match(r'^\s+([A-Za-z0-9_]+):\s*(.*)$', lines[i])
+            if field and field.group(1) in ('value', 'type'):
+                entry[field.group(1)] = field.group(2).strip().strip('\'"')
+            i += 1
+        params[key] = entry
+    return params
+
+
+def require(params, key):
+    """取一个必填参数；缺失或为空就停下，不猜默认值。"""
+    entry = params.get(key) or {}
+    value = entry.get('value', '')
+    if value == '':
+        raise SystemExit(f'参数 {key} 未配置，请在「设置 → 扩展坞」填写后重试')
+    return value
+```
+
+> 项目里已有 YAML 解析器时，直接 `yaml.safe_load` 更省事；关键只有两点：**只读不写**，并且把 `value` 当作唯一来源。
+
+### 常见跑偏（禁止行为）
+
+- ❌ 值不符合预期时反问"要改回 `true` 吗"——参数是配置，不是待确认的建议；
+- ❌ 给出"推荐值"并引导用户改参数；
+- ❌ 用环境变量 / credentials / 上次对话缓存覆盖 `value`；
+- ❌ 自己改 `agents/openai.yaml`（包括"顺手同步 `cordis.patch.yml`"）；
+- ❌ 参数缺失时用默认值或猜测值继续执行。
+
+### 自检清单
+
+- [ ] `SKILL.md` 写明"执行前先读 `agents/openai.yaml` 的 `params`"；
+- [ ] 每个参数都对应一处明确的动作分支（`true` / `false`、选项分支、token 用途）；
+- [ ] 缺失或为空时的行为是"停止 + 指向设置面板"，而不是询问或猜测；
+- [ ] 进度里报告本次实际使用了哪些参数值。
+
 ## 安装
 
 插件页 → **添加插件**，三选一：

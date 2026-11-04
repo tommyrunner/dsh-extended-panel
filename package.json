@@ -1,6 +1,6 @@
 {
   "name": "dsh-extended-panel",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "description": "DeepSeek Harness settings section for skills, MCP connections, and loaded plugins: browse the session skill catalog, edit skill-interface parameters, and mount MCP servers live.",

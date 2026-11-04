@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] — 2026-11-04
+
+Color fixes for the parameter rows and the connection form; no API or config
+changes, so a page refresh is enough for a directory install.
+
+### Fixed
+
+- The switch was invisible when off: its track used `bg-layer-3`, which is
+  nearly the card fill on the settings page, and the knob was pure white. The
+  track now mixes the label color into the background (theme-aware, with a
+  solid fallback), gets an inset ring, and the knob carries a shadow — both
+  states read clearly in light and dark themes. This covers the boolean
+  parameter control and the MCP mount switch.
+- `<select>` painted a hard white plate on dark cards because it used the
+  native widget. It is now a themed control (custom caret, input-style plate)
+  in both the parameter rows and the connection transport field.
+- Disabled primary/danger buttons looked clickable; they now dim. The skill
+  "save parameters" button still keeps its fill while saving, as requested.
+
 ## [1.0.0] — 2026-11-04
 
 First public release. A DeepSeek Harness Settings section that turns the skill

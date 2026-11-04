@@ -352,6 +352,9 @@ window.__ModuleLoader__.load({
     }
 
     /** Page-level button, matching the native settings buttons. */
+    /** Visual state for a disabled button; primary fills otherwise look enabled. */
+    const DIMMED = { opacity: 0.45, cursor: 'default' };
+
     function buttonStyle(kind) {
       const base = {
         boxSizing: 'border-box',
@@ -655,6 +658,10 @@ window.__ModuleLoader__.load({
 
     function Switch(props) {
       const on = props.checked === true;
+      // `bg-layer-3` is nearly the card fill on the settings page, so an "off"
+      // switch used to vanish. The track now mixes the label colour into the
+      // background (works in both themes) with an explicit fallback, and the
+      // knob carries a shadow so it reads on any track.
       return h('button', {
         type: 'button',
         role: 'switch',
@@ -664,20 +671,67 @@ window.__ModuleLoader__.load({
         onClick: props.onToggle,
         style: {
           flex: 'none',
-          width: 34,
-          height: 20,
+          boxSizing: 'border-box',
+          width: 36,
+          height: 21,
           borderRadius: 999,
           border: 'none',
           padding: 2,
           cursor: props.disabled ? 'default' : 'pointer',
-          background: on ? TOKEN.buttonFill : TOKEN.bgLayer3,
-          opacity: props.disabled ? 0.4 : 1,
+          color: TOKEN.labelSecondary,
+          backgroundColor: 'rgba(127, 127, 127, .45)',
+          background: on ? TOKEN.buttonFill : 'color-mix(in srgb, currentColor 34%, transparent)',
+          boxShadow: on ? 'none' : 'inset 0 0 0 .5px ' + TOKEN.border,
+          opacity: props.disabled ? 0.45 : 1,
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: on ? 'flex-end' : 'flex-start',
           transition: 'background .15s',
         },
-      }, h('span', { style: { width: 16, height: 16, borderRadius: '50%', background: '#fff', display: 'block' } }));
+      }, h('span', {
+        style: {
+          width: 17,
+          height: 17,
+          borderRadius: '50%',
+          background: '#fff',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, .3)',
+          display: 'block',
+          transition: 'transform .15s',
+        },
+      }));
+    }
+
+    /** Themed select. The native widget paints its own plate, which shows as a
+     *  hard white box on a dark card, so the plate is drawn here instead. */
+    function Select(props) {
+      return h('span', { style: { position: 'relative', display: 'flex', minWidth: 0 } },
+        h('select', {
+          style: Object.assign({}, inputStyle, props.controlStyle, {
+            appearance: 'none',
+            WebkitAppearance: 'none',
+            paddingRight: 28,
+            cursor: props.disabled ? 'default' : 'pointer',
+            opacity: props.disabled ? 0.5 : 1,
+          }),
+          value: props.value,
+          disabled: props.disabled,
+          onChange: props.onChange,
+        }, props.options.map((option) => h('option', { key: option.value, value: option.value }, option.label))),
+        h('span', {
+          'aria-hidden': 'true',
+          style: {
+            position: 'absolute',
+            right: 11,
+            top: '50%',
+            marginTop: -2,
+            pointerEvents: 'none',
+            width: 0,
+            height: 0,
+            borderLeft: '4px solid transparent',
+            borderRight: '4px solid transparent',
+            borderTop: '5px solid ' + TOKEN.labelTertiary,
+          },
+        }));
     }
 
     function SearchBox(props) {
@@ -899,13 +953,14 @@ window.__ModuleLoader__.load({
                 label: key,
                 onToggle: () => edit(key, current === 'true' ? 'false' : 'true'),
               }),
-              h('code', { style: { fontSize: 11.5, color: TOKEN.labelTertiary, fontFamily: mono } }, current === 'true' ? 'true' : 'false'));
+              h('code', { style: { fontSize: 11.5, color: TOKEN.labelSecondary, fontFamily: mono } }, current === 'true' ? 'true' : 'false'));
           } else if (row.type === 'select' && choices.length > 0) {
-            control = h('select', {
-              style: Object.assign({}, paramControlStyle, { appearance: 'auto' }),
+            control = h(Select, {
               value: current,
+              controlStyle: paramControlStyle,
               onChange: (event) => edit(key, event.target.value),
-            }, choices.map((choice) => h('option', { key: choice, value: choice }, choice === '' ? t('paramEmpty') : choice)));
+              options: choices.map((choice) => ({ value: choice, label: choice === '' ? t('paramEmpty') : choice })),
+            });
           } else {
             control = h('input', {
               type: 'text',
@@ -1017,13 +1072,11 @@ window.__ModuleLoader__.load({
       };
 
       const transportField = h(Field, { label: t('transport') },
-        h('select', {
-          style: Object.assign({}, inputStyle, { appearance: 'auto' }),
+        h(Select, {
           value: draft.transport,
           onChange: (event) => patch({ transport: event.target.value }),
-        },
-          h('option', { value: 'stdio' }, 'stdio'),
-          h('option', { value: 'streamable-http' }, 'streamable-http')));
+          options: [{ value: 'stdio', label: 'stdio' }, { value: 'streamable-http', label: 'streamable-http' }],
+        }));
 
       const body = draft.transport === 'stdio'
         ? h('div', { style: { display: 'grid', gap: 12 } },
@@ -1050,7 +1103,7 @@ window.__ModuleLoader__.load({
           h('div', { style: { display: 'flex', gap: 8, flex: 'none' } },
             props.canRemove ? h('button', {
               type: 'button',
-              style: buttonStyle('danger'),
+              style: Object.assign({}, buttonStyle('danger'), blocked ? DIMMED : {}),
               disabled: blocked,
               onClick: async () => {
                 setSaving(true);
@@ -1071,13 +1124,13 @@ window.__ModuleLoader__.load({
         h('div', { style: { display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', paddingTop: 4 } },
           h('button', {
             type: 'button',
-            style: buttonStyle('primary'),
+            style: Object.assign({}, buttonStyle('primary'), (blocked || invalid) ? DIMMED : {}),
             onClick: submit,
             disabled: blocked || invalid,
           }, saving ? t('saving') : t('save')),
           h('button', {
             type: 'button',
-            style: buttonStyle(),
+            style: Object.assign({}, buttonStyle(), blocked ? DIMMED : {}),
             disabled: blocked,
             onClick: () => { setDraft(draftOf(props.server)); setNotice(''); },
           }, t('discard')),
@@ -1497,7 +1550,7 @@ window.__ModuleLoader__.load({
           }),
           tab === 'mcp' ? h('button', Object.assign({
             type: 'button',
-            style: buttonStyle('primary'),
+            style: Object.assign({}, buttonStyle('primary'), (!writable || !formReady) ? DIMMED : {}),
             disabled: !writable || !formReady,
             onClick: () => setAdding(true),
           }, (!writable || !formReady) ? {} : hoverable('primary')), t('addConnection')) : null,

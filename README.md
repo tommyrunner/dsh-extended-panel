@@ -96,6 +96,150 @@ Adding a new **field** (say `placeholder`, `description`, `group`) needs no code
 at all: parsing ignores it and writing leaves it alone until you choose to render
 it.
 
+## Skill parameters: making the skill obey them
+
+The panel only **stores** values. Whether a run actually follows them depends on
+whether the **skill's own `SKILL.md`** tells the agent to. Declaring `params`
+without an execution rule makes the model treat them as suggestions: it asks the
+user whether to change a value, offers a "recommended" alternative, or silently
+overrides `value` from an environment variable.
+
+Put this block in `SKILL.md` (rename the actions to fit your skill):
+
+````markdown
+## Parameters (strict)
+
+Before doing anything else, read `agents/openai.yaml` in this skill's directory
+and take its `params`.
+
+- `params.<KEY>.value` is the **only** valid value: never override it with a
+  hardcoded default, an environment variable, `~/.dsh/.credentials.yaml`, or a
+  value from an earlier conversation.
+- If a parameter exists, use it. **Do not ask the user whether to use or change
+  it**, and do not suggest a different value; parameters are edited only in
+  Settings → Extensions.
+- With `type: select`, `value` must be one of the `select` choices; anything else
+  is a configuration error.
+- With `type: boolean`, treat the value as a boolean (`true` / `false`), not as a
+  string.
+- If a key is missing or its `value` is empty: **stop** and tell the user to fill
+  it in Settings → Extensions. Do not guess, and do not offer candidates to pick
+  from.
+- Do not modify `agents/openai.yaml`; the panel owns that file.
+- State the parameters used in your first progress line (for example
+  `is_tinypng=false`, `mode=dark`), but never echo a token verbatim.
+````
+
+### Example: three parameter kinds and the matching SKILL.md rules
+
+`agents/openai.yaml`:
+
+```yaml
+params:
+  XIYA_API_TOKEN:
+    value: 'eyJ…'
+    type: input
+  is_tinypng:
+    value: false
+    type: boolean
+  mode:
+    value: dark
+    type: select
+    select: ['light', 'dark']
+```
+
+The rules in `SKILL.md`:
+
+```markdown
+## Parameters
+
+Read `params` from `agents/openai.yaml` first. The following behavior is decided
+by those values and must not be changed by the agent:
+
+- Before uploading an asset, compress it when `params.is_tinypng.value` is
+  `true`; upload the original file when it is `false`. **Do not ask the user**
+  whether to compress.
+- Use `params.mode.value` (`light` / `dark`) for the theme. Do not guess and do
+  not reuse the previous run's value.
+- Authenticate only with `params.XIYA_API_TOKEN.value`; when it is missing, stop
+  and tell the user to fill it in Settings → Extensions.
+```
+
+### Reading example (Python, standard library, both shapes)
+
+```python
+import pathlib
+import re
+
+
+def read_params(skill_dir):
+    """Read params from agents/openai.yaml; flat scalars count as input."""
+    text = (pathlib.Path(skill_dir) / 'agents' / 'openai.yaml').read_text(encoding='utf-8')
+    lines = text.splitlines()
+    start = next((i for i, line in enumerate(lines) if re.match(r'^params:\s*$', line)), None)
+    if start is None:
+        return {}
+    params, i = {}, start + 1
+    while i < len(lines):
+        line = lines[i]
+        if line.strip() == '':
+            i += 1
+            continue
+        if not line.startswith((' ', '\t')):
+            break
+        match = re.match(r'^\s+([A-Za-z0-9_]+):\s*(.*)$', line)
+        if not match:
+            i += 1
+            continue
+        key, rest = match.group(1), match.group(2).strip()
+        if rest and not rest.startswith('#'):
+            params[key] = {'value': rest.strip('\'"'), 'type': 'input'}
+            i += 1
+            continue
+        entry = {'value': '', 'type': 'input'}
+        i += 1
+        while i < len(lines) and (lines[i].strip() == '' or lines[i].startswith((' ', '\t'))):
+            field = re.match(r'^\s+([A-Za-z0-9_]+):\s*(.*)$', lines[i])
+            if field and field.group(1) in ('value', 'type'):
+                entry[field.group(1)] = field.group(2).strip().strip('\'"')
+            i += 1
+        params[key] = entry
+    return params
+
+
+def require(params, key):
+    """Take a required parameter; stop when it is missing instead of guessing."""
+    entry = params.get(key) or {}
+    value = entry.get('value', '')
+    if value == '':
+        raise SystemExit(f'parameter {key} is not configured; fill it in Settings → Extensions')
+    return value
+```
+
+> If your project already parses YAML, `yaml.safe_load` is simpler. The only two
+> rules that matter: **read only, never write**, and treat `value` as the single
+> source of truth.
+
+### Anti-patterns
+
+- ❌ Asking "should I change it back to `true`?" when a value looks unexpected —
+  parameters are configuration, not a proposal to confirm;
+- ❌ Suggesting a "recommended" value and steering the user to change it;
+- ❌ Overriding `value` from an environment variable, credentials, or a cached
+  earlier conversation;
+- ❌ Editing `agents/openai.yaml` itself (including "helpfully" syncing
+  `cordis.patch.yml`);
+- ❌ Continuing with a guessed default when a parameter is missing.
+
+### Checklist
+
+- [ ] `SKILL.md` says "read `params` from `agents/openai.yaml` before acting";
+- [ ] every parameter maps to one explicit behavior branch (`true` / `false`,
+  option branch, token usage);
+- [ ] a missing or empty value stops the run and points at the settings panel,
+  instead of asking or guessing;
+- [ ] the progress line reports which parameter values were actually used.
+
 ## Install
 
 Harness **Plugins** page → **Add plugin**, then pick one:
